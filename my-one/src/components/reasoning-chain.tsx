@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { motion } from 'framer-motion'
 import type { HTMLMotionProps } from 'framer-motion'
 import type { ThoughtStep } from '@/types/reasoning'

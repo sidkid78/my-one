@@ -1,7 +1,6 @@
-'use client'
+"use client"
 
 import { motion } from 'framer-motion'
-import type { MotionProps } from 'framer-motion'
 import { Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -12,6 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 ChartJS.register(
   CategoryScale,
@@ -29,8 +29,6 @@ interface ChainAnalysisProps {
     finish_reason: string
   }
 }
-
-type MotionSectionProps = MotionProps & React.HTMLAttributes<HTMLElement>
 
 export function ChainAnalysis({ analysis }: ChainAnalysisProps) {
   const chartData = {
@@ -53,32 +51,35 @@ export function ChainAnalysis({ analysis }: ChainAnalysisProps) {
     },
   }
 
-  const motionProps: MotionSectionProps = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 },
-    className: "bg-gray-800 p-6 rounded-lg"
-  }
-
   return (
-    <motion.section {...motionProps}>
-      <h2 className="text-2xl font-semibold mb-4">Chain Analysis</h2>
-      <div className="mb-4">
-        <p>
-          <strong>Number of Steps:</strong> {analysis.num_steps}
-        </p>
-        <p>
-          <strong>Average Confidence:</strong>{' '}
-          {(analysis.average_confidence * 100).toFixed(2)}%
-        </p>
-        <p>
-          <strong>Finish Reason:</strong> {analysis.finish_reason}
-        </p>
-      </div>
-      <div className="h-64">
-        <Bar data={chartData} options={chartOptions} />
-      </div>
-    </motion.section>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card>
+        <CardHeader>
+          <CardTitle>Chain Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <p>
+              <strong>Number of Steps:</strong> {analysis.num_steps}
+            </p>
+            <p>
+              <strong>Average Confidence:</strong>{' '}
+              {(analysis.average_confidence * 100).toFixed(2)}%
+            </p>
+            <p>
+              <strong>Finish Reason:</strong> {analysis.finish_reason}
+            </p>
+          </div>
+          <div className="h-64">
+            <Bar data={chartData} options={chartOptions} />
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
 

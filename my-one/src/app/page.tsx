@@ -1,82 +1,93 @@
-'use client'
+// app/page.tsx
+'use client';
 
-import { useState } from 'react'
-import { QuestionInput } from '@/components/question-input'
-import { ReasoningChain } from '@/components/reasoning-chain'
-import { FinalAnswer } from '@/components/final-answer'
-import { ChainAnalysis } from '@/components/chain-analysis'
-import type { ReasoningChain as ReasoningChainType } from '@/types/reasoning'
+import { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2, Brain } from 'lucide-react';
+import { ThoughtChain } from '@/components/ThoughtChain';
+import { Analysis } from '@/components/Analysis';
+
+interface ThoughtStep {
+  thought: string;
+  supporting_facts: string[];
+  confidence: number;
+  next_steps: string[];
+}
+
+interface ReasoningChain {
+  question: string;
+  steps: ThoughtStep[];
+  final_answer: string;
+  metadata: Record<string, unknown>;
+}
 
 export default function Home() {
-  const [reasoningChain, setReasoningChain] = useState<ReasoningChainType | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [question, setQuestion] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [chain, setChain] = useState<ReasoningChain | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleQuestionSubmit = async (question: string) => {
-    setIsLoading(true)
-    setError(null)
-    
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setChain(null);
+
     try {
-      // First API call for reasoning
-      const reasoningResponse = await fetch('/api/reasoning', {
+      const response = await fetch('/api/cot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question })
-      })
+      });
 
-      if (!reasoningResponse.ok) {
-        throw new Error(`Error: ${reasoningResponse.status}`)
-      }
-
-      const reasoningData = await reasoningResponse.json()
-      setReasoningChain(reasoningData)
-
-      // Second API call for analysis
-      const analysisResponse = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reasoningData)
-      })
-
-      if (!analysisResponse.ok) {
-        throw new Error(`Analysis Error: ${analysisResponse.status}`)
-      }
-
-      const analysisData = await analysisResponse.json()
-      setReasoningChain(prev => prev ? { ...prev, metadata: { ...prev.metadata, ...analysisData } } : null)
+      if (!response.ok) throw new Error('Failed to get response');
+      
+      const data = await response.json();
+      setChain(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsLoading(false)
+      setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8">
-      <h1 className="text-4xl font-bold text-center mb-8">Azure Chain of Thought Reasoner</h1>
-      
-      <QuestionInput onSubmit={handleQuestionSubmit} disabled={isLoading} />
-      
+    <main className="container mx-auto p-4 space-y-8">
+      <h1 className="text-3xl font-bold flex items-center gap-2">
+        <Brain className="w-8 h-8" />
+        Chain of Thought Reasoning
+      </h1>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Enter your question..."
+          className="max-w-2xl"
+        />
+        <Button 
+          type="submit" 
+          disabled={loading || !question.trim()}
+        >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Think
+        </Button>
+      </form>
+
       {error && (
-        <div className="mt-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
+        <Card className="p-4 bg-red-50 text-red-700 max-w-2xl">
           {error}
-        </div>
+        </Card>
       )}
 
-      {isLoading && (
-        <div className="mt-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto" />
-          <p className="mt-4">Thinking...</p>
-        </div>
-      )}
-
-      {reasoningChain && !isLoading && (
-        <div className="mt-8 space-y-8">
-          <ReasoningChain steps={reasoningChain.steps} />
-          <FinalAnswer answer={reasoningChain.final_answer} />
-          <ChainAnalysis analysis={reasoningChain.metadata} />
+      {chain && (
+        <div className="space-y-8 max-w-4xl">
+          <ThoughtChain chain={chain} />
+          <Analysis chain={chain} />
         </div>
       )}
     </main>
-  )
+  );
 }
