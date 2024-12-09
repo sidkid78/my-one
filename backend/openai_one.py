@@ -25,7 +25,7 @@ class AzureChainOfThoughtReasoner:
         azure_endpoint: str,
         azure_api_key: str,
         deployment_name: str,
-        api_version: str = "2024-02-15-preview"
+        api_version: str = "2024-08-01-preview"
     ):
         self.client = AzureOpenAI(
             azure_endpoint=azure_endpoint,
@@ -147,37 +147,3 @@ class AzureChainOfThoughtReasoner:
             "finish_reason": chain.metadata.get("finish_reason")
         }
         return analysis
-
-def main():
-    # Initialize the reasoner with Azure OpenAI credentials
-    reasoner = AzureChainOfThoughtReasoner(
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        azure_api_key=os.getenv("AZURE_OPENAI_KEY"),
-        deployment_name="your-deployment-name"  # e.g., "gpt-4" or your custom deployment name
-    )
-    
-    # Example question
-    question = "What would happen if everyone on Earth jumped at the same time?"
-    
-    # Generate reasoning chain
-    reasoning_chain = reasoner.reason(question)
-    
-    # Print the reasoning process
-    print(f"Question: {reasoning_chain.question}\n")
-    
-    for i, step in enumerate(reasoning_chain.steps, 1):
-        print(f"Step {i}:")
-        print(f"Thought: {step.thought}")
-        print(f"Supporting facts: {step.supporting_facts}")
-        print(f"Confidence: {step.confidence}")
-        print(f"Next steps: {step.next_steps}\n")
-        
-    print(f"Final Answer: {reasoning_chain.final_answer}\n")
-    
-    # Analyze the reasoning chain
-    analysis = reasoner.analyze_reasoning_chain(reasoning_chain)
-    print("Reasoning Chain Analysis:")
-    print(json.dumps(analysis, indent=2))
-
-if __name__ == "__main__":
-    main()

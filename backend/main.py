@@ -4,6 +4,9 @@ from typing import List, Dict, Optional
 from .openai_one import AzureChainOfThoughtReasoner, ReasoningChain
 import os
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -35,7 +38,7 @@ class ReasoningResponse(BaseModel):
 # Initialize the reasoner
 reasoner = AzureChainOfThoughtReasoner(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    azure_api_key=os.getenv("AZURE_OPENAI_KEY"),
+    azure_api_key=os.getenv("AZURE_OPENAI_API_KEY"),
     deployment_name=os.getenv("AZURE_DEPLOYMENT_NAME")
 )
 
